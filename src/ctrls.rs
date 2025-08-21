@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, env::args, fmt::{self, Display}, io::{stdout, Write}, ops::Neg};
 
 use rand::{random_range, seq::IndexedRandom};
-use text_io::{read, try_read, try_scan};
+use text_io::try_read;
 
 use crate::{Board, Player, WIN_CASES};
 
@@ -45,11 +45,11 @@ pub struct Human;
 impl Controller for Human {
     fn get_move(&self, player: Player, _: &Board) -> usize {
         loop {
-            print!("Player {}, place your marker: ", player.colourize());
+            print!("Player {player}, place your marker: ");
             stdout().flush().expect("Could not flush stdout.");
-            let input: String = read!("{}\n");
+            let input: Result<usize, _> = try_read!("{}\n");
 
-            match input.trim().parse::<usize>() {
+            match input {
                 Ok(n @ 1..=9) => return n - 1,
                 Ok(_) => println!("Outside the board.. 🤦‍"),
                 Err(_) => println!("Invalid input."),

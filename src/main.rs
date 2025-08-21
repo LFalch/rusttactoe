@@ -28,20 +28,17 @@ impl Player {
             Player::O => "O",
         }
     }
-    fn colourize(self) -> String {
+}
+
+impl Display for Player {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Player::X => Colour::Blue,
             Player::O => Colour::Yellow,
         }
         .bold()
         .paint(self.as_str())
-        .to_string()
-    }
-}
-
-impl Display for Player {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.as_str().fmt(f)
+        .fmt(f)
     }
 }
 
@@ -71,18 +68,27 @@ const TAB: &str = tab!();
 const WIN_CASES: [(usize, usize, usize); 8] = [(0, 1, 2), (3, 4, 5), (6, 7, 8), (0, 3, 6), (0, 4, 8), (1, 4, 7), (2, 5, 8), (2, 4, 6)];
 
 impl Board {
-    fn field_str(&self, i: usize) -> String {
-        let b = self.board[i];
-        b.map(|b| b.colourize()).unwrap_or_else(|| format!("{}", i + 1))
+    fn field_display(&self, i: usize) -> impl Display {
+        struct Thing(Result<Player, usize>);
+        impl Display for Thing {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                match self.0 {
+                    Ok(p) => p.fmt(f),
+                    Err(i) => (i + 1).fmt(f),
+                }
+            }
+        }
+
+        Thing(self.board[i].ok_or(i))
     }
     fn draw_row(&self, i: usize) {
         let off = i * 3;
         println!(
-            "{} {} | {} | {}",
+            "{} {} | {} | {}",
             TAB,
-            self.field_str(off),
-            self.field_str(off + 1),
-            self.field_str(off + 2),
+            self.field_display(off),
+            self.field_display(off + 1),
+            self.field_display(off + 2),
         )
     }
     fn draw(&self) {
